@@ -1,8 +1,14 @@
 [package]
 name = "geogebra-types"
+description = "Geogebra types and API for building them."
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+repository = "https://github.com/DragonGamesStudios/geogebra-types.git"
 
 [dependencies]
 serde = { version = "1.0.210", features = ["derive"] }
 quick-xml = { version = "0.36.1", features = ["serialize"] }
+zip = "2.2.0"
+serde_repr = "0.1.19"
+num-traits = "0.2"

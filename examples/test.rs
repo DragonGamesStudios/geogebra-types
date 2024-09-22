@@ -1,15 +1,14 @@
-use geogebra_types::raw::{AngleUnit, Geogebra, Kernel, Val};
+use std::fs::File;
+
+use geogebra_types::prelude::*;
 
 fn main() {
-    let ggb = Geogebra {
-        kernel: Kernel {
-            digits: Val { val: 1 },
-            angle_unit: Val {
-                val: AngleUnit::Degree,
-            },
-            coord_style: Val { val: 1 },
-        },
-    };
+    let mut ggb = Geogebra::new();
 
-    println!("{}", quick_xml::se::to_string(&ggb).unwrap());
+    let x = Numeric::complex(1.0, 2.0);
+    let y = Numeric::complex(2.0, 3.0);
+    ggb.var([x, y].sum());
+
+    let out = File::create("out.ggb").unwrap();
+    ggb.write(out).unwrap();
 }
