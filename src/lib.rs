@@ -21,12 +21,13 @@ pub use raw::{LineStyle, LineType};
 
 pub mod prelude {
     pub use super::{
-        Conic, ConicAccess, Geogebra, Line, List, ListAccess, Numeric, NumericAccess, Point,
-        PointAccess, Ray, Segment,
+        Conic, ConicAccess, Expr as _, Geogebra, Line, List, ListAccess, Numeric, NumericAccess,
+        Point, PointAccess, Ray, Segment,
     };
 }
 
 /// High-level API for working with a Geogebra workspace.
+#[derive(Debug)]
 pub struct Geogebra {
     data: raw::Geogebra,
     /// Next element id to use for a label
@@ -51,7 +52,6 @@ impl Geogebra {
     /// Write the ggb file to a stream.
     pub fn write(&self, stream: impl Write + Seek) -> io::Result<()> {
         let geogebra = quick_xml::se::to_string(&self.data).unwrap();
-        println!("{geogebra}");
 
         let mut file = ZipWriter::new(stream);
 
@@ -191,7 +191,11 @@ pub trait Expr: Into<Expression> {
 impl<X: Into<Numeric>, Y: Into<Numeric>> From<(X, Y)> for Expression {
     fn from((x, y): (X, Y)) -> Self {
         Self {
-            expr: Rc::new(format!("({}, {})", x.into().0.expr, y.into().0.expr)),
+            expr: Rc::new(format!(
+                "(real({}), real({}))",
+                x.into().0.expr,
+                y.into().0.expr
+            )),
             style: Style::default(),
         }
     }
@@ -200,7 +204,7 @@ impl<X: Into<Numeric>, Y: Into<Numeric>> From<(X, Y)> for Expression {
 impl From<f64> for Expression {
     fn from(value: f64) -> Self {
         Self {
-            expr: Rc::new(format!("{value}")),
+            expr: Rc::new(format!("{value} + 0i")),
             style: Style::default(),
         }
     }
@@ -400,6 +404,7 @@ impl Expr for f64 {
 }
 
 /// A line element of the Geogebra construction
+#[derive(Clone)]
 pub struct Line(Expression);
 
 impl Line {
@@ -453,8 +458,8 @@ impl Line {
     pub fn perpendicular(to: impl Into<Line>, through: impl Into<Point>) -> Self {
         Self(Expression::expr(format!(
             "PerpendicularLine({}, {})",
-            to.into().0.expr,
-            through.into().0.expr
+            through.into().0.expr,
+            to.into().0.expr
         )))
     }
 
@@ -463,8 +468,8 @@ impl Line {
     pub fn parallel(to: impl Into<Line>, through: impl Into<Point>) -> Self {
         Self(Expression::expr(format!(
             "Line({}, {})",
-            to.into().0.expr,
-            through.into().0.expr
+            through.into().0.expr,
+            to.into().0.expr
         )))
     }
 }
@@ -502,6 +507,7 @@ impl Expr for Line {
 impl Object for Line {}
 
 /// A list expression
+#[derive(Clone)]
 pub struct List<T>(Expression, PhantomData<T>);
 
 impl<T: Expr, It: IntoIterator<Item = T>> From<It> for List<T::Target>
@@ -526,6 +532,30 @@ where
             },
             PhantomData,
         )
+    }
+}
+
+impl<T> From<List<T>> for Expression {
+    fn from(value: List<T>) -> Self {
+        value.0
+    }
+}
+
+impl<T> Expr for List<T> {
+    type Target = List<T>;
+
+    fn get_type() -> ElementType {
+        ElementType::List
+    }
+
+    fn var(expr: String) -> Var<Self::Target> {
+        Var::new(expr)
+    }
+}
+
+impl<T> From<&Var<List<T>>> for List<T> {
+    fn from(value: &Var<List<T>>) -> Self {
+        Self(value.into(), PhantomData)
     }
 }
 
@@ -554,7 +584,7 @@ impl List<Numeric> {
     #[must_use]
     pub fn sum(self) -> Numeric {
         Numeric(Expression {
-            expr: Rc::new(format!("Sum({})", self.0.expr)),
+            expr: Rc::new(format!("Sum(Append({}, 0 + 0i))", self.0.expr)),
             style: Style::default(),
         })
     }
@@ -563,7 +593,7 @@ impl List<Numeric> {
     #[must_use]
     pub fn product(self) -> Numeric {
         Numeric(Expression {
-            expr: Rc::new(format!("Product({})", self.0.expr)),
+            expr: Rc::new(format!("Product(Append({}, 1 + 0i))", self.0.expr)),
             style: Style::default(),
         })
     }
@@ -610,6 +640,7 @@ where
 impl<T, V> ListAccess<T> for V where List<T>: From<V> {}
 
 /// A number value
+#[derive(Clone)]
 pub struct Numeric(Expression);
 
 impl Numeric {
@@ -689,24 +720,24 @@ impl Numeric {
     /// Get the real part of this number
     #[must_use]
     pub fn real(self) -> Self {
-        Self(Expression::expr(format!("x({})", self.0.expr)))
+        Self(Expression::expr(format!("real({})", self.0.expr)))
     }
 
     /// Get the imaginary part of this number
     #[must_use]
     pub fn imaginary(self) -> Self {
-        Self(Expression::expr(format!("y({})", self.0.expr)))
+        Self(Expression::expr(format!("imaginary({})", self.0.expr)))
+    }
+
+    /// Get the argument of a complex number.
+    #[must_use]
+    pub fn arg(self) -> Self {
+        Self(Expression::expr(format!("arg({})", self.0.expr)))
     }
 }
 
 impl From<f64> for Numeric {
     fn from(value: f64) -> Self {
-        Self(Expression::from(value))
-    }
-}
-
-impl From<Var<Numeric>> for Numeric {
-    fn from(value: Var<Numeric>) -> Self {
         Self(Expression::from(value))
     }
 }
@@ -933,11 +964,17 @@ where
     fn imaginary(self) -> Numeric {
         Numeric::from(self).imaginary()
     }
+
+    /// Get this complex number's argument
+    fn arg(self) -> Numeric {
+        Numeric::from(self).arg()
+    }
 }
 
 impl<T> NumericAccess for T where Numeric: From<Self> {}
 
 /// A circle in the construction
+#[derive(Clone)]
 pub struct Conic(Expression);
 
 impl Conic {
@@ -971,7 +1008,7 @@ impl Conic {
     pub fn circle(center: impl Into<Point>, radius: impl Into<Numeric>) -> Self {
         Self(Expression {
             expr: Rc::new(format!(
-                "Circle({}, {})",
+                "Circle({}, abs({}))",
                 center.into().0.expr,
                 radius.into().0.expr
             )),
@@ -1036,6 +1073,7 @@ where
 impl<T> ConicAccess for T where Conic: From<T> {}
 
 /// A ray (half-line)
+#[derive(Clone)]
 pub struct Ray(Expression);
 
 impl Ray {
@@ -1097,7 +1135,10 @@ impl Expr for Ray {
     }
 }
 
+impl Addable for Ray {}
+
 /// A segment
+#[derive(Clone)]
 pub struct Segment(Expression);
 
 impl Segment {
@@ -1167,6 +1208,8 @@ impl Addable for Point {}
 impl Addable for Line {}
 
 impl Addable for Conic {}
+
+impl Addable for Segment {}
 
 impl Geogebra {
     /// Create an object defined by an expression.

@@ -77,6 +77,7 @@ pub enum ElementType {
     Numeric,
     Conic,
     Ray,
+    List,
 }
 
 /// Style of a line
