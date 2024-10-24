@@ -734,6 +734,42 @@ impl Numeric {
     pub fn arg(self) -> Self {
         Self(Expression::expr(format!("arg({})", self.0.expr)))
     }
+
+    /// Convert this to a point
+    #[must_use]
+    pub fn point(self) -> Point {
+        Point(Expression::expr(format!("ToPoint({})", self.0.expr)))
+    }
+
+    /// Get the sine of this angle.
+    #[must_use]
+    pub fn sin(self) -> Numeric {
+        Numeric(Expression::expr(format!("sin({})", self.0.expr)))
+    }
+
+    /// Get the cosine of this angle.
+    #[must_use]
+    pub fn cos(self) -> Numeric {
+        Numeric(Expression::expr(format!("cos({})", self.0.expr)))
+    }
+
+    /// Get the arcsine of this angle.
+    #[must_use]
+    pub fn asin(self) -> Numeric {
+        Numeric(Expression::expr(format!("asin({})", self.0.expr)))
+    }
+
+    /// Get the arccosine of this angle.
+    #[must_use]
+    pub fn acos(self) -> Numeric {
+        Numeric(Expression::expr(format!("acos({})", self.0.expr)))
+    }
+
+    /// Get the arctan of this angle.
+    #[must_use]
+    pub fn atan(self) -> Numeric {
+        Numeric(Expression::expr(format!("atan({})", self.0.expr)))
+    }
 }
 
 impl From<f64> for Numeric {
@@ -968,6 +1004,41 @@ where
     /// Get this complex number's argument
     fn arg(self) -> Numeric {
         Numeric::from(self).arg()
+    }
+
+    /// Convert this number to a point
+    fn point(self) -> Point {
+        Numeric::from(self).point()
+    }
+
+    /// Get the sine of this angle.
+    #[must_use]
+    fn sin(self) -> Numeric {
+        Numeric::from(self).sin()
+    }
+
+    /// Get the cosine of this angle.
+    #[must_use]
+    fn cos(self) -> Numeric {
+        Numeric::from(self).cos()
+    }
+
+    /// Get the arcsine of this angle.
+    #[must_use]
+    fn asin(self) -> Numeric {
+        Numeric::from(self).asin()
+    }
+
+    /// Get the arccosine of this angle.
+    #[must_use]
+    fn acos(self) -> Numeric {
+        Numeric::from(self).acos()
+    }
+
+    /// Get the arctan of this angle.
+    #[must_use]
+    fn atan(self) -> Numeric {
+        Numeric::from(self).atan()
     }
 }
 
