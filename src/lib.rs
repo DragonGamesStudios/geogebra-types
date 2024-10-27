@@ -729,6 +729,18 @@ impl Numeric {
         Self(Expression::expr(format!("imaginary({})", self.0.expr)))
     }
 
+    /// Natural logarithm (base e)
+    #[must_use]
+    pub fn ln(self) -> Self {
+        Self(Expression::expr(format!("ln({})", self.0.expr)))
+    }
+
+    /// Exponential function (e^this)
+    #[must_use]
+    pub fn exp(self) -> Self {
+        Self(Expression::expr(format!("exp({})", self.0.expr)))
+    }
+
     /// Get the argument of a complex number.
     #[must_use]
     pub fn arg(self) -> Self {
@@ -987,28 +999,45 @@ where
     Numeric: From<Self>,
 {
     /// Raise the number to a power
+    #[must_use]
     fn pow(self, exponent: impl Into<Numeric>) -> Numeric {
         Numeric::from(self).pow(exponent)
     }
 
     /// Get the real part of this number
+    #[must_use]
     fn real(self) -> Numeric {
         Numeric::from(self).real()
     }
 
     /// Get the imaginary part of this number
+    #[must_use]
     fn imaginary(self) -> Numeric {
         Numeric::from(self).imaginary()
     }
 
     /// Get this complex number's argument
+    #[must_use]
     fn arg(self) -> Numeric {
         Numeric::from(self).arg()
     }
 
     /// Convert this number to a point
+    #[must_use]
     fn point(self) -> Point {
         Numeric::from(self).point()
+    }
+
+    /// Natural logarithm (base e)
+    #[must_use]
+    fn ln(self) -> Numeric {
+        Numeric::from(self).ln()
+    }
+
+    /// Exponential function (e^this)
+    #[must_use]
+    fn exp(self) -> Numeric {
+        Numeric::from(self).exp()
     }
 
     /// Get the sine of this angle.
