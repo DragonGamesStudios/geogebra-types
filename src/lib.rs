@@ -21,8 +21,8 @@ pub use raw::{LineStyle, LineType};
 
 pub mod prelude {
     pub use super::{
-        Conic, ConicAccess, Expr as _, Geogebra, Line, List, ListAccess, Numeric, NumericAccess,
-        Point, PointAccess, Ray, Segment,
+        Conic, ConicAccess, Expr as _, Geogebra, Line, LineAccess, List, ListAccess, Numeric,
+        NumericAccess, Point, PointAccess, Ray, Segment,
     };
 }
 
