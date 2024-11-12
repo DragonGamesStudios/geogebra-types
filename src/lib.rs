@@ -472,6 +472,12 @@ impl Line {
             to.into().0.expr
         )))
     }
+
+    /// Direction vector of this line
+    #[must_use]
+    pub fn direction(self) -> Numeric {
+        Numeric(Expression::expr(format!("Direction({})", self.0.expr)))
+    }
 }
 
 impl From<Var<Line>> for Line {
@@ -505,6 +511,20 @@ impl Expr for Line {
 }
 
 impl Object for Line {}
+
+/// Trait with line-related functions
+pub trait LineAccess: Sized
+where
+    Line: From<Self>,
+{
+    /// Direction vector of this line
+    #[must_use]
+    fn direction(self) -> Numeric {
+        Line::from(self).direction()
+    }
+}
+
+impl<T> LineAccess for T where Line: From<T> {}
 
 /// A list expression
 #[derive(Clone)]
