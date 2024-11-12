@@ -442,6 +442,19 @@ impl Line {
         })
     }
 
+    /// Make a line from a point and a direction vector
+    #[must_use]
+    pub fn point_vector(point: impl Into<Point>, vector: impl Into<Numeric>) -> Self {
+        Self(Expression {
+            expr: Rc::new(format!(
+                "Line({}, {})",
+                point.into().0.expr,
+                vector.into().0.expr
+            )),
+            style: Self::style(),
+        })
+    }
+
     /// Bisector of an angle
     #[must_use]
     pub fn angle_bisector(a: impl Into<Point>, b: impl Into<Point>, c: impl Into<Point>) -> Self {
@@ -802,6 +815,12 @@ impl Numeric {
     pub fn atan(self) -> Numeric {
         Numeric(Expression::expr(format!("atan({})", self.0.expr)))
     }
+
+    /// Normalize the value (abs of 1)
+    #[must_use]
+    pub fn normalize(self) -> Numeric {
+        Numeric(Expression::expr(format!("UnitVector({})", self.0.expr)))
+    }
 }
 
 impl From<f64> for Numeric {
@@ -1088,6 +1107,12 @@ where
     #[must_use]
     fn atan(self) -> Numeric {
         Numeric::from(self).atan()
+    }
+
+    /// Normalize this value (abs of 1)
+    #[must_use]
+    fn normalize(self) -> Numeric {
+        Numeric::from(self).normalize()
     }
 }
 
